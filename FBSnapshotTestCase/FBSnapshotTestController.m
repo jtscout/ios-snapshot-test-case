@@ -288,13 +288,11 @@ typedef NS_ENUM(NSUInteger, FBTestSnapshotFileNameType) {
 - (NSString *)_referenceFilePathForSelector:(SEL)selector
                                  identifier:(NSString *)identifier
 {
-    NSString *name = [NSString stringWithFormat:@"%@_%@", identifier, _folderName];
-    NSString *fileName = [self _fileNameForSelector:selector identifier:name fileNameType:fileNameType];
-    NSString *folderPath = NSTemporaryDirectory();
-    if (getenv("IMAGE_DIFF_DIR")) {
-      folderPath = @(getenv("IMAGE_DIFF_DIR"));
-    }
-    NSString *filePath = [folderPath stringByAppendingPathComponent:fileName];
+    NSString *fileName = [self _fileNameForSelector:selector
+                                          identifier:identifier
+                                        fileNameType:FBTestSnapshotFileNameTypeReference];
+    NSString *filePath = [_referenceImagesDirectory stringByAppendingPathComponent:self.folderName];
+    filePath = [filePath stringByAppendingPathComponent:fileName];
     return filePath;
 }
 
@@ -302,13 +300,14 @@ typedef NS_ENUM(NSUInteger, FBTestSnapshotFileNameType) {
                               identifier:(NSString *)identifier
                             fileNameType:(FBTestSnapshotFileNameType)fileNameType
 {
-    NSString *fileName = [self _fileNameForSelector:selector
-                                         identifier:identifier
-                                       fileNameType:fileNameType];
-
-    NSString *filePath = [_imageDiffDirectory stringByAppendingPathComponent:self.folderName];
-    filePath = [filePath stringByAppendingPathComponent:fileName];
-    return filePath;
+    NSString *name = [NSString stringWithFormat:@"%@_%@", identifier, self.folderName];
+    NSString *fileName = [self _fileNameForSelector:selector identifier:name fileNameType:fileNameType];
+    NSString *folderPath = NSTemporaryDirectory();
+    if (getenv("IMAGE_DIFF_DIR")) {
+      folderPath = @(getenv("IMAGE_DIFF_DIR"));
+    }
+    NSString *filePath = [folderPath stringByAppendingPathComponent:fileName];
+    return filePath
 }
 
 - (BOOL)_performPixelComparisonWithViewOrLayer:(id)viewOrLayer
