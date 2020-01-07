@@ -307,7 +307,7 @@ typedef NS_ENUM(NSUInteger, FBTestSnapshotFileNameType) {
       folderPath = @(getenv("IMAGE_DIFF_DIR"));
     }
     NSString *filePath = [folderPath stringByAppendingPathComponent:fileName];
-    return filePath
+    return filePath;
 }
 
 - (BOOL)_performPixelComparisonWithViewOrLayer:(id)viewOrLayer
