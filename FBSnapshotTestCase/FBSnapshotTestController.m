@@ -271,7 +271,9 @@ typedef NS_ENUM(NSUInteger, FBTestSnapshotFileNameType) {
             fileName = @"";
             break;
     }
-    fileName = [fileName stringByAppendingString:NSStringFromSelector(selector)];
+    
+    NSString *originFileName = [self updateFileNameForDarkMode:selector];
+    fileName = [fileName stringByAppendingString:originFileName];
     if (0 < identifier.length) {
         fileName = [fileName stringByAppendingFormat:@"_%@", identifier];
     }
@@ -338,8 +340,8 @@ typedef NS_ENUM(NSUInteger, FBTestSnapshotFileNameType) {
                                error:(NSError **)errorPtr
 {
     UIImage *snapshot = [self _imageForViewOrLayer:viewOrLayer];
-
-    [XCTContext runActivityNamed:identifier ?: NSStringFromSelector(selector) block:^(id<XCTActivity> _Nonnull activity) {
+    NSString *filename = [self updateFileNameForDarkMode:selector];
+    [XCTContext runActivityNamed:identifier ?:filename block:^(id<XCTActivity> _Nonnull activity) {
         XCTAttachment *recordedAttachment = [XCTAttachment attachmentWithImage:snapshot];
         recordedAttachment.name = @"Recorded Image";
         [activity addAttachment:recordedAttachment];
@@ -400,6 +402,24 @@ typedef NS_ENUM(NSUInteger, FBTestSnapshotFileNameType) {
         [NSException raise:@"Only UIView and CALayer classes can be snapshotted" format:@"%@", viewOrLayer];
     }
     return nil;
+}
+
+- (NSMutableDictionary *)getEnvironmentalVariables {
+    NSMutableDictionary *environmentVariables = [[NSMutableDictionary alloc] init];
+    [environmentVariables addEntriesFromDictionary:[[NSProcessInfo processInfo] environment]];
+    return environmentVariables;
+}
+
+- (NSString *)updateFileNameForDarkMode:(SEL)selector {
+    NSString *filename = [[NSString alloc] init];
+    NSMutableDictionary *environmentVariables = [self getEnvironmentalVariables];
+    NSString *forceDarkMode = [environmentVariables objectForKey:@"FORCE_DARK_MODE"];
+    if (forceDarkMode != nil && [forceDarkMode isEqual: @"true"]) {
+        filename = [NSString stringWithFormat: @"%@_Dark", NSStringFromSelector(selector)];
+    } else {
+        filename = NSStringFromSelector(selector);
+    }
+    return filename;
 }
 
 @end
